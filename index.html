@@ -29,6 +29,7 @@
 .fb-bar{position:fixed;top:46px;left:0;right:0;z-index:999;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);padding:6px 12px;display:flex;gap:6px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 .fb{padding:4px 10px;border-radius:20px;border:2px solid #ddd;background:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .2s}
 .fb.on{border-color:#1a1a2e;background:#1a1a2e;color:#fff}.fb:hover{border-color:#555}
+.rn{display:inline-block;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700;color:#fff;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}
 @media(max-width:600px){.lg{bottom:10px;left:10px;padding:10px 12px;font-size:10px;line-height:1.8}.tb h1{font-size:14px}.tb span{font-size:10px}.cl,.tl,.tls{font-size:9px}.fb{font-size:10px;padding:3px 7px}}
 </style>
 </head>
@@ -44,6 +45,7 @@
 <button class="fb" onclick="f('리조트',this)">🏨리조트</button>
 <button class="fb" onclick="f('관광',this)">🎯관광</button>
 <button class="fb" onclick="f('마을',this)">🏙️마을</button>
+<button class="fb" onclick="f('동선',this)">📍동선</button>
 </div>
 <div id="map"></div>
 <div class="lg">
@@ -58,6 +60,8 @@
 <strong>트레일</strong><br>
 <div class="li"><div class="lt" style="border-bottom:14px solid #c0392b"></div>국립공원</div>
 <div class="li"><div class="lt" style="border-bottom:14px solid #27ae60"></div>주립공원</div>
+<strong>동선</strong><br>
+<div class="li"><div style="width:20px;height:3px;border-top:3px dashed #e91e63;flex-shrink:0"></div>이동 경로</div>
 </div>
 <script>
 const P=[
@@ -112,7 +116,7 @@ let AM=[],AL=[];
 P.forEach(p=>{
 const ic=L.divIcon({className:'',html:'<div style="width:14px;height:14px;border-radius:50%;background:'+p.co+';border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>',iconSize:[14,14],iconAnchor:[7,7]});
 const m=L.marker([p.la,p.lo],{icon:ic}).addTo(map);m._cat=p.c;
-m.bindPopup('<span class="cb" style="background:'+p.co+'">'+p.c+'</span><h3>'+p.n.replace(/\n/g,' ')+'</h3><p>'+p.i.replace(/\n/g,'<br>')+'</p>',{maxWidth:280});
+m.bindPopup('<span class="cb" style="background:'+p.co+'">'+p.c+'</span><h3>'+p.n.replace(/\n/g,' ')+'</h3><p>'+p.i.replace(/\n/g,'<br>')+'</p><a href="https://www.google.com/maps/search/?api=1&query='+p.la+','+p.lo+'" target="_blank" style="display:inline-block;margin-top:8px;padding:4px 10px;background:#4285f4;color:#fff;border-radius:6px;font-size:11px;text-decoration:none;font-weight:600">📍 Google Maps</a>',{maxWidth:280});
 const lb=L.marker([p.la,p.lo],{icon:L.divIcon({className:'cl',html:p.n.replace(/\n/g,'<br>'),iconSize:[130,30],iconAnchor:[-10,12]})}).addTo(map);lb._cat=p.c;
 AM.push(m);AL.push(lb);
 });
@@ -120,13 +124,39 @@ T.forEach(t=>{
 const tc=t.pk==='NP'?'#c0392b':'#27ae60';
 const ic=L.divIcon({className:'',html:'<div style="width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:16px solid '+tc+';filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))"></div>',iconSize:[18,16],iconAnchor:[9,16]});
 const m=L.marker([t.la,t.lo],{icon:ic}).addTo(map);m._cat='트레일';
-m.bindPopup('<span class="cb" style="background:'+tc+'">🥾 '+(t.pk==='NP'?'국립공원':'주립공원')+' 트레일</span><h3>'+t.n.replace(/\n/g,' ')+'</h3><div class="ts"><span class="k">난이도</span><span class="v">'+t.d+'</span><span class="k">거리</span><span class="v">'+t.ds+'</span><span class="k">시간</span><span class="v">'+t.tm+'</span><span class="k">고도↑</span><span class="v">'+t.el+'</span></div><p style="margin-top:8px">'+t.nt.replace(/\n/g,'<br>')+'</p>',{maxWidth:300});
+m.bindPopup('<span class="cb" style="background:'+tc+'">🥾 '+(t.pk==='NP'?'국립공원':'주립공원')+' 트레일</span><h3>'+t.n.replace(/\n/g,' ')+'</h3><div class="ts"><span class="k">난이도</span><span class="v">'+t.d+'</span><span class="k">거리</span><span class="v">'+t.ds+'</span><span class="k">시간</span><span class="v">'+t.tm+'</span><span class="k">고도↑</span><span class="v">'+t.el+'</span></div><p style="margin-top:8px">'+t.nt.replace(/\n/g,'<br>')+'</p><a href="https://www.google.com/maps/search/?api=1&query='+t.la+','+t.lo+'" target="_blank" style="display:inline-block;margin-top:8px;padding:4px 10px;background:#4285f4;color:#fff;border-radius:6px;font-size:11px;text-decoration:none;font-weight:600">📍 Google Maps</a>',{maxWidth:300});
 const lc=t.pk==='NP'?'tl':'tls';
 const lb=L.marker([t.la,t.lo],{icon:L.divIcon({className:lc,html:'🥾 '+t.n.replace(/\n/g,'<br>'),iconSize:[160,30],iconAnchor:[-12,12]})}).addTo(map);lb._cat='트레일';
 AM.push(m);AL.push(lb);
 });
+const R=[
+{n:"🏡 출발 (McLean)",la:38.9339,lo:-77.1773},
+{n:"🥾 Hawksbill Summit",la:38.555,lo:-78.387},
+{n:"🌉 Meem's Covered Bridge",la:38.7208,lo:-78.6552},
+{n:"🛍️ Shenandoah Flea Market",la:38.6782,lo:-78.6565},
+{n:"🏠 숙소 (Mt Jackson)",la:38.7462,lo:-78.6426},
+{n:"🍷 Muse Vineyards",la:38.890,lo:-78.516}
+];
+let RM=[],RL=[];
+const routeCoords=R.map(r=>[r.la,r.lo]);
+const routeLine=L.polyline(routeCoords,{color:'#e91e63',weight:3,opacity:0.8,dashArray:'10,8'}).addTo(map);
+RL.push(routeLine);
+R.forEach((r,i)=>{
+const ric=L.divIcon({className:'',html:'<div class="rn" style="background:#e91e63">'+(i+1)+'</div>',iconSize:[22,22],iconAnchor:[11,11]});
+const rm=L.marker([r.la,r.lo],{icon:ric,zIndexOffset:1000}).addTo(map);
+rm.bindPopup('<b>Stop '+(i+1)+'</b><br>'+r.n+'<br><a href="https://www.google.com/maps/search/?api=1&query='+r.la+','+r.lo+'" target="_blank" style="display:inline-block;margin-top:6px;padding:3px 8px;background:#4285f4;color:#fff;border-radius:6px;font-size:11px;text-decoration:none;font-weight:600">📍 Google Maps</a>');
+RM.push(rm);
+});
 function f(c,b){
 document.querySelectorAll('.fb').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+if(c==='동선'){
+AM.forEach(m=>map.removeLayer(m));AL.forEach(l=>map.removeLayer(l));
+RM.forEach(m=>map.addLayer(m));RL.forEach(l=>map.addLayer(l));
+map.fitBounds(routeLine.getBounds(),{padding:[50,50]});
+return;
+}
+RM.forEach(m=>{c==='all'?map.addLayer(m):map.removeLayer(m)});
+RL.forEach(l=>{c==='all'?map.addLayer(l):map.removeLayer(l)});
 AM.forEach(m=>{(c==='all'||m._cat===c)?map.addLayer(m):map.removeLayer(m)});
 AL.forEach(l=>{(c==='all'||l._cat===c)?map.addLayer(l):map.removeLayer(l)});
 if(c==='트레일')map.setView([38.6,-78.36],10);
