@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shenandoah Valley Trip Map</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Noto Sans KR',sans-serif}
+#map{width:100vw;height:100vh}
+.cl{background:none;border:none;box-shadow:none;font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;color:#1a1a2e;text-shadow:1px 1px 3px #fff,-1px -1px 3px #fff,1px -1px 3px #fff,-1px 1px 3px #fff,0 0 8px #fff;white-space:nowrap;pointer-events:none}
+.tl{background:none;border:none;box-shadow:none;font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;color:#c0392b;text-shadow:1px 1px 2px #fff,-1px -1px 2px #fff,1px -1px 2px #fff,-1px 1px 2px #fff,0 0 6px #fff;white-space:nowrap;pointer-events:none}
+.tls{background:none;border:none;box-shadow:none;font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;color:#1e8449;text-shadow:1px 1px 2px #fff,-1px -1px 2px #fff,1px -1px 2px #fff,-1px 1px 2px #fff,0 0 6px #fff;white-space:nowrap;pointer-events:none}
+.leaflet-popup-content-wrapper{border-radius:12px;font-family:'Noto Sans KR',sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.leaflet-popup-content{margin:12px 16px;line-height:1.6}
+.leaflet-popup-content h3{font-size:15px;margin-bottom:4px;color:#1a1a2e}
+.leaflet-popup-content p{font-size:13px;color:#555;margin:0}
+.ts{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin-top:8px;padding:8px 10px;background:#f8f9fa;border-radius:8px;font-size:12px}
+.ts .k{color:#888;font-weight:600}.ts .v{color:#222;font-weight:700}
+.cb{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:6px;color:#fff}
+.lg{position:fixed;bottom:20px;left:20px;background:rgba(255,255,255,.95);border-radius:14px;padding:14px 18px;box-shadow:0 4px 20px rgba(0,0,0,.12);z-index:1000;font-size:12px;line-height:2;backdrop-filter:blur(10px)}
+.li{display:flex;align-items:center;gap:8px}
+.ld{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.lt{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;flex-shrink:0}
+.tb{position:fixed;top:0;left:0;right:0;z-index:1000;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 15px rgba(0,0,0,.2)}
+.tb h1{font-size:17px;font-weight:700}.tb span{font-size:12px;opacity:.8}
+.fb-bar{position:fixed;top:46px;left:0;right:0;z-index:999;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);padding:6px 12px;display:flex;gap:6px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.fb{padding:4px 10px;border-radius:20px;border:2px solid #ddd;background:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .2s}
+.fb.on{border-color:#1a1a2e;background:#1a1a2e;color:#fff}.fb:hover{border-color:#555}
+@media(max-width:600px){.lg{bottom:10px;left:10px;padding:10px 12px;font-size:10px;line-height:1.8}.tb h1{font-size:14px}.tb span{font-size:10px}.cl,.tl,.tls{font-size:9px}.fb{font-size:10px;padding:3px 7px}}
+</style>
+</head>
+<body>
+<div class="tb"><h1>🗺️ Shenandoah Valley Trip</h1><span>Apr 2-4, 2026</span></div>
+<div class="fb-bar">
+<button class="fb on" onclick="f('all',this)">전체</button>
+<button class="fb" onclick="f('숙소',this)">🏠숙소</button>
+<button class="fb" onclick="f('공원',this)">🏞️공원</button>
+<button class="fb" onclick="f('트레일',this)">🥾트레일</button>
+<button class="fb" onclick="f('동굴',this)">🕳️동굴</button>
+<button class="fb" onclick="f('와이너리',this)">🍷와이너리</button>
+<button class="fb" onclick="f('리조트',this)">🏨리조트</button>
+<button class="fb" onclick="f('관광',this)">🎯관광</button>
+<button class="fb" onclick="f('마을',this)">🏙️마을</button>
+</div>
+<div id="map"></div>
+<div class="lg">
+<strong>장소</strong><br>
+<div class="li"><div class="ld" style="background:#e74c3c"></div>숙소</div>
+<div class="li"><div class="ld" style="background:#2ecc71"></div>공원</div>
+<div class="li"><div class="ld" style="background:#3498db"></div>동굴</div>
+<div class="li"><div class="ld" style="background:#9b59b6"></div>와이너리</div>
+<div class="li"><div class="ld" style="background:#f39c12"></div>리조트</div>
+<div class="li"><div class="ld" style="background:#e67e22"></div>관광</div>
+<div class="li"><div class="ld" style="background:#1abc9c"></div>마을</div>
+<strong>트레일</strong><br>
+<div class="li"><div class="lt" style="border-bottom:14px solid #c0392b"></div>국립공원</div>
+<div class="li"><div class="lt" style="border-bottom:14px solid #27ae60"></div>주립공원</div>
+</div>
+<script>
+const P=[
+{n:"🏠 Airbnb 숙소",la:38.7462,lo:-78.6426,c:"숙소",co:"#e74c3c",i:"523 Mulberry Lane, Mount Jackson\nApr 2 체크인 4PM → Apr 4 체크아웃 10AM"},
+{n:"Shenandoah\nNational Park",la:38.4754,lo:-78.4534,c:"공원",co:"#2ecc71",i:"입장료 $30/차량 (7일)\nOld Rag $1 day-use ticket 별도"},
+{n:"Shenandoah River\nState Park",la:38.8425,lo:-78.301,c:"공원",co:"#2ecc71",i:"입장료 $10/차량\n25마일+ 트레일\n🌸 블루벨 페스티벌 4/4!"},
+{n:"Sky Meadows\nState Park",la:38.9896,lo:-77.971,c:"공원",co:"#2ecc71",i:"초원+산림 하이킹\nAT 접근 가능"},
+{n:"Luray Caverns",la:38.6645,lo:-78.4832,c:"동굴",co:"#3498db",i:"동부 최대 동굴\n매일 9AM-6PM"},
+{n:"Shenandoah\nCaverns",la:38.7155,lo:-78.6693,c:"동굴",co:"#3498db",i:"숙소에서 5분!\n매일 9AM-4PM"},
+{n:"Skyline Caverns",la:38.8996,lo:-78.2161,c:"동굴",co:"#3498db",i:"Front Royal 근처\nAnthodites 유명"},
+{n:"Grand Caverns",la:38.259,lo:-78.8346,c:"동굴",co:"#3498db",i:"희귀 shield 형성\n매일 10AM-4PM"},
+{n:"Early Mountain\nVineyards",la:38.3521,lo:-78.3103,c:"와이너리",co:"#9b59b6",i:"고급 와이너리. 화·수 휴무"},
+{n:"Prince Michel\nWinery",la:38.4365,lo:-78.1542,c:"와이너리",co:"#9b59b6",i:"와이너리+브루어리+카페"},
+{n:"Glass House\nWinery",la:38.1992,lo:-78.5796,c:"와이너리",co:"#9b59b6",i:"온실 와이너리! 월·화 휴무"},
+{n:"White Oak\nLavender Farm",la:38.3643,lo:-78.8388,c:"와이너리",co:"#9b59b6",i:"라벤더+와이너리+동물원"},
+{n:"⭐ Bryce Resort",la:38.8175,lo:-78.7657,c:"리조트",co:"#f39c12",i:"🚗 숙소에서 20분!\n골프, 산악자전거, 스키(겨울)\nbryceresort.com"},
+{n:"Shenvalee Golf\nResort",la:38.6396,lo:-78.6734,c:"리조트",co:"#f39c12",i:"🚗 숙소에서 15분!\n골프 리조트\nMillers Pub 레스토랑"},
+{n:"Massanutten\nResort",la:38.4067,lo:-78.7159,c:"리조트",co:"#f39c12",i:"🚗 숙소에서 45분\n워터파크, 골프, 짚라인, 스파\n가장 다양한 액티비티"},
+{n:"Cooter's Place",la:38.6446,lo:-78.5475,c:"관광",co:"#e67e22",i:"뮤지엄+버거 레스토랑"},
+{n:"Shenandoah River\nOutfitters",la:38.7569,lo:-78.4307,c:"관광",co:"#e67e22",i:"카약, 카누, 튜빙"},
+{n:"Museum of\nShenandoah Valley",la:39.1854,lo:-78.1799,c:"관광",co:"#e67e22",i:"Winchester. 정원+박물관"},
+{n:"Meem's\nCovered Bridge",la:38.7208,lo:-78.6552,c:"관광",co:"#e67e22",i:"역사적 커버드 브리지\n숙소에서 5분"},
+{n:"Shenandoah\nFlea Market",la:38.6782,lo:-78.6565,c:"관광",co:"#e67e22",i:"앤티크&빈티지 매일 10-5"},
+{n:"White Lotus\nEco Spa",la:38.2543,lo:-78.4941,c:"관광",co:"#e67e22",i:"에코 스파. 호빗하우스!"},
+{n:"Front Royal",la:38.9172,lo:-78.1905,c:"마을",co:"#1abc9c",i:"NP 북쪽 입구"},
+{n:"Old Town\nWinchester",la:39.1822,lo:-78.1663,c:"마을",co:"#1abc9c",i:"보행자 거리. 상점, 음식"},
+{n:"Jacktown\nDog Park",la:38.7501,lo:-78.6457,c:"마을",co:"#1abc9c",i:"Mount Jackson 공원"},
+{n:"JMU",la:38.4351,lo:-78.8698,c:"마을",co:"#1abc9c",i:"James Madison University"},
+{n:"Timberline Mtn",la:39.0425,lo:-79.399,c:"마을",co:"#1abc9c",i:"스키 리조트 (WV)"},
+{n:"White Grass",la:39.019,lo:-79.4217,c:"마을",co:"#1abc9c",i:"크로스컨트리 (WV)"},
+{n:"Canaan Valley\nResort",la:39.0286,lo:-79.4608,c:"마을",co:"#1abc9c",i:"리조트+골프 (WV)"},
+{n:"Canaan Valley Ski",la:39.0084,lo:-79.4385,c:"마을",co:"#1abc9c",i:"가족 스키장 (WV)"},
+];
+const T=[
+{n:"Old Rag Mountain\nLoop",la:38.5518,lo:-78.3148,pk:"NP",co:"#c0392b",d:"⭐⭐⭐ 상급",ds:"9.2mi",tm:"6~8h",el:"2,348ft",nt:"클래스3 암벽 스크램블\n360도 뷰. $1 ticket 필요\n⚠️ 개 불가"},
+{n:"Hawksbill Summit",la:38.555,lo:-78.387,pk:"NP",co:"#c0392b",d:"⭐⭐ 중급",ds:"2.1mi",tm:"1h",el:"672ft",nt:"공원 최고봉 4,049ft\n🐕 개 가능!"},
+{n:"Dark Hollow Falls",la:38.522,lo:-78.434,pk:"NP",co:"#c0392b",d:"⭐ 초중급",ds:"1.4mi",tm:"1h",el:"440ft",nt:"71ft 폭포\n⚠️ 개 불가"},
+{n:"Bearfence Mtn",la:38.484,lo:-78.461,pk:"NP",co:"#c0392b",d:"⭐⭐ 중급",ds:"1.1mi",tm:"40min",el:"275ft",nt:"짧지만 암벽 스크램블!\n360도 뷰. ⚠️ 개 불가"},
+{n:"Stony Man Trail",la:38.592,lo:-78.373,pk:"NP",co:"#c0392b",d:"⭐ 초급",ds:"1.5mi",tm:"35min",el:"321ft",nt:"최고의 뷰 중 하나\n⚠️ 개 불가"},
+{n:"Hemlock+Bluebell\n+Overlook Loop",la:38.849,lo:-78.293,pk:"SP",co:"#27ae60",d:"⭐ 초급",ds:"2.9mi",tm:"1h15m",el:"321ft",nt:"가장 인기!\n강변+초원+숲+전망대\n🌸 블루벨 시즌"},
+{n:"Culler's Overlook",la:38.846,lo:-78.306,pk:"SP",co:"#27ae60",d:"⭐ 초급",ds:"1.0mi",tm:"30min",el:"~100ft",nt:"강+산 전망\n가족 적합"},
+{n:"Redtail Ridge\nLoop",la:38.838,lo:-78.312,pk:"SP",co:"#27ae60",d:"⭐⭐ 중급",ds:"3.7mi",tm:"1h30m",el:"~400ft",nt:"강변 전망대 3곳"},
+{n:"Bear Bottom\nBig Loop",la:38.833,lo:-78.305,pk:"SP",co:"#27ae60",d:"⭐⭐ 중급",ds:"6.9mi",tm:"3h",el:"711ft",nt:"공원 전체 루프"},
+{n:"Bluebell Trail",la:38.844,lo:-78.298,pk:"SP",co:"#27ae60",d:"⭐ 초급",ds:"1.1mi",tm:"30min",el:"~50ft",nt:"🌸 4월 블루벨 장관!\n가족 적합"},
+];
+const map=L.map('map',{zoomControl:false}).setView([38.62,-78.42],9);
+L.control.zoom({position:'bottomright'}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(map);
+let AM=[],AL=[];
+P.forEach(p=>{
+const ic=L.divIcon({className:'',html:'<div style="width:14px;height:14px;border-radius:50%;background:'+p.co+';border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>',iconSize:[14,14],iconAnchor:[7,7]});
+const m=L.marker([p.la,p.lo],{icon:ic}).addTo(map);m._cat=p.c;
+m.bindPopup('<span class="cb" style="background:'+p.co+'">'+p.c+'</span><h3>'+p.n.replace(/\n/g,' ')+'</h3><p>'+p.i.replace(/\n/g,'<br>')+'</p>',{maxWidth:280});
+const lb=L.marker([p.la,p.lo],{icon:L.divIcon({className:'cl',html:p.n.replace(/\n/g,'<br>'),iconSize:[130,30],iconAnchor:[-10,12]})}).addTo(map);lb._cat=p.c;
+AM.push(m);AL.push(lb);
+});
+T.forEach(t=>{
+const tc=t.pk==='NP'?'#c0392b':'#27ae60';
+const ic=L.divIcon({className:'',html:'<div style="width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:16px solid '+tc+';filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))"></div>',iconSize:[18,16],iconAnchor:[9,16]});
+const m=L.marker([t.la,t.lo],{icon:ic}).addTo(map);m._cat='트레일';
+m.bindPopup('<span class="cb" style="background:'+tc+'">🥾 '+(t.pk==='NP'?'국립공원':'주립공원')+' 트레일</span><h3>'+t.n.replace(/\n/g,' ')+'</h3><div class="ts"><span class="k">난이도</span><span class="v">'+t.d+'</span><span class="k">거리</span><span class="v">'+t.ds+'</span><span class="k">시간</span><span class="v">'+t.tm+'</span><span class="k">고도↑</span><span class="v">'+t.el+'</span></div><p style="margin-top:8px">'+t.nt.replace(/\n/g,'<br>')+'</p>',{maxWidth:300});
+const lc=t.pk==='NP'?'tl':'tls';
+const lb=L.marker([t.la,t.lo],{icon:L.divIcon({className:lc,html:'🥾 '+t.n.replace(/\n/g,'<br>'),iconSize:[160,30],iconAnchor:[-12,12]})}).addTo(map);lb._cat='트레일';
+AM.push(m);AL.push(lb);
+});
+function f(c,b){
+document.querySelectorAll('.fb').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+AM.forEach(m=>{(c==='all'||m._cat===c)?map.addLayer(m):map.removeLayer(m)});
+AL.forEach(l=>{(c==='all'||l._cat===c)?map.addLayer(l):map.removeLayer(l)});
+if(c==='트레일')map.setView([38.6,-78.36],10);
+else if(c==='리조트')map.setView([38.65,-78.7],10);
+else if(c==='all')map.setView([38.62,-78.42],9);
+}
+</script>
+</body>
+</html>
